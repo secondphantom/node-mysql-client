@@ -1,6 +1,6 @@
 import { createLogger, format, transports } from "winston";
 
-const timezoned = () => {
+const timezone = () => {
   return new Date().toLocaleString("en-US", {
     timeZone: "Asia/Seoul",
   });
@@ -10,7 +10,7 @@ const logger = createLogger({
   level: "info",
   format: format.combine(
     format.timestamp({
-      format: timezoned,
+      format: timezone,
     }),
     format.errors({ stack: true }),
     format.splat(),

@@ -3,8 +3,9 @@ import path from "path";
 import mysql from "mysql2";
 import { Pool } from "mysql2/promise";
 import { diff } from "deep-object-diff";
+import * as jsonDiffPatch from "jsondiffpatch";
 import { MysqlDataType } from "./db.schema";
-import logger from "@secondphantom/mysql-client/src/logger/logger";
+import logger from "../logger/logger";
 import { _ } from "../libs/fp.method";
 
 type AnyFn<T = any> = (...args: any[]) => T;
@@ -137,13 +138,13 @@ type MutationSetInput<T, U extends MutationType = any> = {
   select?: never;
 };
 
-type MutationDelteInput<T, U extends MutationType = any> = {
+type MutationDeleteInput<T, U extends MutationType = any> = {
   mutationType: U;
   dbSchemaConfig: ConfigSchema;
   include?: {
     [key in keyof T as T[key] extends Array<any> | undefined
       ? key
-      : never]?: Omit<MutationDelteInput<Unpacked<T[key]>>, "mutationType">;
+      : never]?: Omit<MutationDeleteInput<Unpacked<T[key]>>, "mutationType">;
   };
   data: Array<{
     [key in keyof T as T[key] extends Array<any> | undefined
@@ -198,7 +199,7 @@ type MutationType =
 type MutationInput<T, U extends MutationType, I = any> = U extends "SET_UPDATE"
   ? MutationSetInput<T, U>
   : U extends "DELETE"
-  ? MutationDelteInput<T, U>
+  ? MutationDeleteInput<T, U>
   : U extends "SET_DELETE"
   ? MutationSetDelteInput<T, U>
   : U extends "SET_INSERT"
@@ -1001,6 +1002,7 @@ export class DbClient {
   private presentDbSchema: MysqlDataType.DbSchemaObj<any> = {};
   constructor(
     dbSchemaAry: Array<AllDbSchema>,
+    private dbSchemaPath: string,
     poolConfig: {
       host: string;
       password: string;
@@ -1019,17 +1021,14 @@ export class DbClient {
   private updatePresentDbSchema() {
     let presentDbSchemaJson: string | undefined;
     try {
-      presentDbSchemaJson = fs.readFileSync(
-        path.join(__dirname, "../../dbSchema/dbSchema.json"),
-        "utf-8"
-      );
+      presentDbSchemaJson = fs.readFileSync(this.dbSchemaPath, "utf-8");
+      this.presentDbSchema = JSON.parse(presentDbSchemaJson as string);
+      return;
     } catch (e) {
       console.error("Read DbSchema Error");
       this.presentDbSchema = {};
       return;
     }
-    this.presentDbSchema = JSON.parse(presentDbSchemaJson as string);
-    return;
   }
 
   private isDiffDbSchema(
@@ -1038,6 +1037,7 @@ export class DbClient {
     update: boolean
   ): boolean {
     const presentDbSchemaConfig = this.presentDbSchema[dbSchemaName];
+
     const diffResult = diff(presentDbSchemaConfig, dbSchemaConfig);
     if (!Object.keys(diffResult).length) return false;
     if (update) this.presentDbSchema[dbSchemaName] = dbSchemaConfig;
@@ -1054,6 +1054,7 @@ export class DbClient {
           dbSchemaConfig,
           false
         );
+
         if (!isDiffSchema) continue;
 
         try {
@@ -1085,7 +1086,7 @@ export class DbClient {
       }
     }
     fs.writeFileSync(
-      path.join(__dirname, "../../dbSchema/dbSchema.json"),
+      path.join(this.dbSchemaPath),
       JSON.stringify(this.presentDbSchema),
       "utf-8"
     );
@@ -1099,8 +1100,11 @@ export class DbClient {
       const connection = await this.promisePool.getConnection();
       try {
         const result = await connection.query(queryStr, valueAry);
+
         connection.release();
-        resultAry.push(...(result[0] as Array<T>));
+        if ((result[0] as any as IterableIterator<any>)[Symbol.iterator]) {
+          resultAry.push(...(result[0] as Array<T>));
+        }
       } catch (e: any) {
         logger.info(queryStr);
         e.sqlMessage ? logger.error(e.sqlMessage) : logger.error(e);

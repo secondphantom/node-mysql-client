@@ -78,7 +78,7 @@ export namespace MysqlDataType {
 
   export type TypeKeys<T> = keyof T;
 
-  export type DbFieldValues<T = any, M = any, PT = any> = {
+  export type DbFieldValues<T = any, M = any, PT = any, CK = any> = {
     type: T extends number | undefined
       ? Number
       : T extends string | undefined
@@ -97,7 +97,7 @@ export namespace MysqlDataType {
       | {
           with: { 0: keyof PT } & Array<keyof PT>;
           order: number;
-          key?: string;
+          key: CK;
         };
     primaryKey?: true;
     indexKey?:
@@ -105,7 +105,7 @@ export namespace MysqlDataType {
       | {
           with: { 0: keyof PT } & Array<keyof PT>;
           order: number;
-          key?: string;
+          key: CK;
         };
     foreignKey?: {
       tableName: PickTypeValues<GetUnionElementType<M>, "tableName">;
@@ -136,13 +136,13 @@ export namespace MysqlDataType {
   export type DbFields<T = any, M = any> = {
     [key in keyof T as CheckAllowNull<T[key]> extends "YES"
       ? key
-      : never]?: DbFieldValues<T[key], M, Omit<T, key>>;
+      : never]?: DbFieldValues<T[key], M, Omit<T, key>, key>;
   } & {
     [key in keyof T as CheckAllowNull<T[key]> extends "YES"
       ? never
-      : key]: DbFieldValues<T[key], M, Omit<T, key>>;
+      : key]: DbFieldValues<T[key], M, Omit<T, key>, key>;
   } & (T extends any
-      ? { [key in keyof T]: DbFieldValues<T[key], M, Omit<T, key>> }
+      ? { [key in keyof T]: DbFieldValues<T[key], M, Omit<T, key>, key> }
       : {});
 
   export type DbSchema<

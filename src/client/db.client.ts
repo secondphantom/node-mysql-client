@@ -158,14 +158,14 @@ type MutationDeleteInput<T, U extends MutationType = any> = {
   select?: never;
 };
 
-type MutationSetDelteInput<T, U extends MutationType = any> = {
+type MutationSetDeleteInput<T, U extends MutationType = any> = {
   mutationType: U;
   dbSchemaConfig: ConfigSchema;
   where?: MergedWhereOperator<T>;
   include?: {
     [key in keyof T as T[key] extends Array<any> | undefined
       ? key
-      : never]?: Omit<MutationSetDelteInput<Unpacked<T[key]>>, "mutationType">;
+      : never]?: Omit<MutationSetDeleteInput<Unpacked<T[key]>>, "mutationType">;
   };
   data?: never;
   from?: never;
@@ -195,13 +195,14 @@ type MutationType =
   | "DELETE"
   | "SET_UPDATE"
   | "SET_DELETE"
-  | "SET_INSERT";
+  | "SET_INSERT"
+  | "ADD_UPSERT";
 type MutationInput<T, U extends MutationType, I = any> = U extends "SET_UPDATE"
   ? MutationSetInput<T, U>
   : U extends "DELETE"
   ? MutationDeleteInput<T, U>
   : U extends "SET_DELETE"
-  ? MutationSetDelteInput<T, U>
+  ? MutationSetDeleteInput<T, U>
   : U extends "SET_INSERT"
   ? MutationSetInsertInput<T, U, I>
   : MutationManyInput<T, U>;
@@ -887,6 +888,7 @@ export class QueryBuilder {
             valueAry.push(...indexObj.valueAry);
             break;
           case "UPSERT":
+          case "ADD_UPSERT":
             queryAry.push(
               `INSERT INTO \`${tableName}\` (${fieldAry
                 .map((field) => {
@@ -914,6 +916,9 @@ export class QueryBuilder {
               queryAry.push(
                 `${exclIndexAry
                   .map((key) => {
+                    if (mutationType === "ADD_UPSERT") {
+                      return `\`${tableName}\`.\`${key}\` = NEW_VAL.\`${key}\`+\`${tableName}\`.\`${key}\``;
+                    }
                     return `\`${tableName}\`.\`${key}\` = NEW_VAL.\`${key}\``;
                   })
                   .join(", ")}`
@@ -986,6 +991,8 @@ export class QueryBuilder {
     QueryBuilder.mutation<T, "SET_DELETE">(args);
   static setInsertMutation = <T, I>(args: MutationInput<T, "SET_INSERT", I>) =>
     QueryBuilder.mutation<T, "SET_INSERT", I>(args);
+  static addUpsertMutation = <T>(args: MutationInput<T, "ADD_UPSERT">) =>
+    QueryBuilder.mutation<T, "ADD_UPSERT">(args);
 
   static getQueryStrWithItems<T>(
     queryFn: AnyFn,

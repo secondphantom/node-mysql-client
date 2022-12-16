@@ -1,4 +1,4 @@
-type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -89,7 +89,7 @@ export namespace MysqlDataType {
       ? DbBoolean
       : T extends Json | undefined
       ? DbJson
-      : never;
+      : DbJson;
     size?: number;
     notNull?: true;
     unique?:

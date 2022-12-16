@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import mysql from "mysql2";
-import { Pool } from "mysql2/promise";
+import { Pool, PoolConnection } from "mysql2/promise";
 import { diff } from "deep-object-diff";
 import * as jsonDiffPatch from "jsondiffpatch";
 import { MysqlDataType } from "./db.schema";
@@ -965,7 +965,7 @@ export class QueryBuilder {
                 .join(", ")})\n`
             );
             queryAry.push(...fromAry!);
-            valueAry.push(...valueAry!);
+            valueAry.push(...whereValueAry!);
             break;
         }
         queryStrReturnAry[curQueryStrAryInfo.index].push({
@@ -1155,6 +1155,51 @@ export class DbClient {
     }
 
     if (error) throw new Error(error as any);
+    return resultAry;
+  }
+
+  async beginTrx() {
+    const connection = await this.promisePool.getConnection();
+    connection.beginTransaction();
+    return connection;
+  }
+
+  async commitTrx(connection: PoolConnection) {
+    connection.commit();
+    connection.release();
+  }
+
+  async errorTrx(connection: PoolConnection) {
+    connection.rollback();
+    connection.release();
+  }
+
+  async trxWithConnection(
+    connection: PoolConnection,
+    trxAry: QueryStrReturn[][]
+  ) {
+    let resultAry = [];
+    for await (const trx of trxAry) {
+      const promiseAry = trx.map((trxInfo) => {
+        return connection.query(trxInfo.queryStr, trxInfo.valueAry);
+      });
+      const result = await Promise.all(promiseAry);
+
+      resultAry.push(result);
+    }
+    return resultAry;
+  }
+
+  async queryWithConnection<T>(
+    connection: PoolConnection,
+    tryQuery: QueryStrReturn
+  ): Promise<Array<T>> {
+    const { queryStr, valueAry } = tryQuery;
+    const result = await connection.query(queryStr, valueAry);
+    let resultAry: any[] = [];
+    if ((result[0] as any as IterableIterator<any>)[Symbol.iterator]) {
+      resultAry.push(...(result[0] as Array<T>));
+    }
     return resultAry;
   }
 }

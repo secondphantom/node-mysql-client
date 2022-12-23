@@ -26,7 +26,7 @@ type WhereOperator<T> = {
 
 interface Operator<T> {
   equal?: T;
-  not?: T;
+  not?: T | null;
   lt?: T;
   lte?: T;
   gt?: T;
@@ -1010,13 +1010,7 @@ export class DbClient {
   constructor(
     dbSchemaAry: Array<AllDbSchema>,
     private dbSchemaPath: string,
-    poolConfig: {
-      host: string;
-      password: string;
-      user: string;
-      database: string;
-      connectionLimit: number;
-    }
+    poolConfig: mysql.PoolOptions
   ) {
     this.pool = mysql.createPool(poolConfig);
     this.promisePool = this.pool.promise();
@@ -1131,7 +1125,7 @@ export class DbClient {
     let resultAry = [];
     try {
       const connection = await this.promisePool.getConnection();
-      connection.beginTransaction();
+      await connection.beginTransaction();
       try {
         for await (const trx of trxAry) {
           const promiseAry = trx.map((trxInfo) => {
@@ -1140,9 +1134,9 @@ export class DbClient {
           const result = await Promise.all(promiseAry);
           resultAry.push(result);
         }
-        connection.commit();
+        await connection.commit();
       } catch (e: any) {
-        connection.rollback();
+        await connection.rollback();
 
         error = e;
         e.sqlMessage ? logger.error(e.sqlMessage) : logger.error(e);
@@ -1160,17 +1154,17 @@ export class DbClient {
 
   async beginTrx() {
     const connection = await this.promisePool.getConnection();
-    connection.beginTransaction();
+    await connection.beginTransaction();
     return connection;
   }
 
   async commitTrx(connection: PoolConnection) {
-    connection.commit();
+    await connection.commit();
     connection.release();
   }
 
   async errorTrx(connection: PoolConnection) {
-    connection.rollback();
+    await connection.rollback();
     connection.release();
   }
 

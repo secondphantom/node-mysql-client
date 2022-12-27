@@ -5,6 +5,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "watch": "tsc -w",
+    "prepare": "npm run build",
+    "build": "tsc --project tsconfig.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

@@ -1,3 +1,4 @@
 import { DbClient, QueryBuilder } from "./client/db.client";
-
-export { DbClient, QueryBuilder };
+import { MysqlDataType } from "./client/db.schema";
+export default DbClient;
+export { QueryBuilder, MysqlDataType };

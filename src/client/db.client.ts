@@ -36,9 +36,9 @@ interface Operator<T> {
 type ConditionOperator<T> = T | Operator<T>;
 
 type MergedWhereOperator<T = any> = WhereOperator<T> & {
-  OR?: [WhereOperator<T>, ...WhereOperator<T>[]];
+  OR?: WhereOperator<T>[];
 } & {
-  AND?: [WhereOperator<T>, ...WhereOperator<T>[]];
+  AND?: WhereOperator<T>[];
 };
 
 type FindUniqueInput<T> = {

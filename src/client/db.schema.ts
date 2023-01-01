@@ -113,7 +113,6 @@ export namespace MysqlDataType {
       symbol?: string;
       enforced?: Enforced;
     };
-
     comment?: string;
     isBoolean?: T extends boolean | null | undefined ? true | never : never;
   } & (CheckAllowNullUndefined<T> extends "YES"

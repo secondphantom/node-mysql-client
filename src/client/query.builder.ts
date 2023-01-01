@@ -1025,11 +1025,12 @@ export class ExportQueryBuilder {
   static insertMutation = QueryBuilder.insertMutation;
   static updateMutation = QueryBuilder.updateMutation;
   static upsertMutation = QueryBuilder.upsertMutation;
+  static deleteMutation = QueryBuilder.deleteMutation;
 
   static setUpdateMutation = QueryBuilder.setUpdateMutation;
-  static deleteMutation = QueryBuilder.deleteMutation;
   static setDeleteMutation = QueryBuilder.setDeleteMutation;
   static setInsertMutation = QueryBuilder.setInsertMutation;
+
   static addUpsertMutation = QueryBuilder.addUpsertMutation;
 
   static getQueryStrWithItems = QueryBuilder.getQueryStrWithItems;

@@ -25,6 +25,9 @@ const dbLightClient = new DbLightClient(poolConfig);
         dbSchemaConfig: musicDbSchema.songDbSchema,
       },
     },
+    where: {
+      author: "me",
+    },
     take: 2,
   });
   const resultQuery = await dbLightClient.tryQuery(findQuery);

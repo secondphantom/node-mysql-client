@@ -638,8 +638,8 @@ class ExportQueryBuilder {
     static insertMutation = QueryBuilder.insertMutation;
     static updateMutation = QueryBuilder.updateMutation;
     static upsertMutation = QueryBuilder.upsertMutation;
-    static setUpdateMutation = QueryBuilder.setUpdateMutation;
     static deleteMutation = QueryBuilder.deleteMutation;
+    static setUpdateMutation = QueryBuilder.setUpdateMutation;
     static setDeleteMutation = QueryBuilder.setDeleteMutation;
     static setInsertMutation = QueryBuilder.setInsertMutation;
     static addUpsertMutation = QueryBuilder.addUpsertMutation;

@@ -23,6 +23,9 @@ const dbLightClient = new index_1.DbLightClient(poolConfig);
                 dbSchemaConfig: music_db_schema_1.default.songDbSchema,
             },
         },
+        where: {
+            author: "me",
+        },
         take: 2,
     });
     const resultQuery = await dbLightClient.tryQuery(findQuery);

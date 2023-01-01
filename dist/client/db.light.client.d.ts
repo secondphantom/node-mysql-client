@@ -8,7 +8,7 @@ export default class DbLightClient {
     private pool;
     private promisePool;
     constructor(poolConfig: mysql.PoolOptions);
-    tryQuery<T>(tryQuery: QueryStrReturn): Promise<Array<T>>;
+    tryQuery<T = any>(tryQuery: QueryStrReturn): Promise<Array<T>>;
     tryTrx(trxAry: QueryStrReturn[][]): Promise<[mysql.RowDataPacket[] | mysql.RowDataPacket[][] | mysql.OkPacket | mysql.OkPacket[] | mysql.ResultSetHeader, mysql.FieldPacket[]][][]>;
     beginTrx(): Promise<PoolConnection>;
     commitTrx(connection: PoolConnection): Promise<void>;

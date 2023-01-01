@@ -20,7 +20,7 @@ export default class DbLightClient {
     this.promisePool = this.pool.promise();
   }
 
-  async tryQuery<T>(tryQuery: QueryStrReturn): Promise<Array<T>> {
+  async tryQuery<T = any>(tryQuery: QueryStrReturn): Promise<Array<T>> {
     let error = undefined;
     let resultAry: any[] = [];
     const { queryStr, valueAry } = tryQuery;

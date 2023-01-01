@@ -218,8 +218,8 @@ export declare class ExportQueryBuilder {
     static insertMutation: <T>(args: MutationManyInput<T, "INSERT">) => Required<QueryStrReturn>[][];
     static updateMutation: <T>(args: MutationManyInput<T, "UPDATE">) => Required<QueryStrReturn>[][];
     static upsertMutation: <T>(args: MutationManyInput<T, "UPSERT">) => Required<QueryStrReturn>[][];
-    static setUpdateMutation: <T>(args: MutationSetInput<T, "SET_UPDATE">) => Required<QueryStrReturn>[][];
     static deleteMutation: <T>(args: MutationDeleteInput<T, "DELETE">) => Required<QueryStrReturn>[][];
+    static setUpdateMutation: <T>(args: MutationSetInput<T, "SET_UPDATE">) => Required<QueryStrReturn>[][];
     static setDeleteMutation: <T>(args: MutationSetDeleteInput<T, "SET_DELETE">) => Required<QueryStrReturn>[][];
     static setInsertMutation: <T, I>(args: MutationSetInsertInput<T, "SET_INSERT", I>) => Required<QueryStrReturn>[][];
     static addUpsertMutation: <T>(args: MutationManyInput<T, "ADD_UPSERT">) => Required<QueryStrReturn>[][];

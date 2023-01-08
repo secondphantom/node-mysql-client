@@ -842,11 +842,15 @@ export default class QueryBuilder {
   }
 
   static mutation<T, U extends MutationType, I = any>(
-    args: MutationInput<T, U, I>
+    args: MutationInput<T, U, I>,
+    options?: { multipleInput: boolean }
   ): Required<QueryStrReturn>[][] {
     const { mutationType } = args;
     const { dataObj } = QueryBuilder.mutationBuilder<T, U, I>(args);
-    const curQueryStrAryInfo = { index: -1, tableName: "" };
+    const curQueryStrAryInfo = {
+      index: -1,
+      tableName: "",
+    };
     const queryStrReturnAry: Required<QueryStrReturn>[][] = [];
     for (const tableName in dataObj) {
       const { data } = dataObj[tableName];
@@ -876,6 +880,10 @@ export default class QueryBuilder {
                 })
                 .join(", ")})\n`
             );
+            if (options && options.multipleInput) {
+              queryAry.push(`VALUES ?`);
+              break;
+            }
             queryAry.push(
               `VALUES(${fieldAry
                 .map(() => {
@@ -911,13 +919,17 @@ export default class QueryBuilder {
                 })
                 .join(", ")})\n`
             );
-            queryAry.push(
-              `VALUES(${fieldAry
-                .map(() => {
-                  return "?";
-                })
-                .join(", ")}) AS NEW_VAL`
-            );
+            if (options && options.multipleInput) {
+              queryAry.push(`VALUES ? AS NEW_VAL`);
+            } else {
+              queryAry.push(
+                `VALUES(${fieldAry
+                  .map(() => {
+                    return "?";
+                  })
+                  .join(", ")}) AS NEW_VAL`
+              );
+            }
             queryAry.push(`ON DUPLICATE KEY UPDATE\n`);
             if (exclIndexAry.length === 0) {
               queryAry.push(
@@ -983,6 +995,22 @@ export default class QueryBuilder {
             valueAry.push(...whereValueAry!);
             break;
         }
+        if (options && options.multipleInput) {
+          if (queryStrReturnAry[curQueryStrAryInfo.index].length === 0) {
+            queryStrReturnAry[curQueryStrAryInfo.index].push({
+              queryStr: queryAry.join(" "),
+              valueAry: [[valueAry]],
+            });
+            return;
+          }
+          const curQueryStr = queryAry.join(" ");
+          const bfQueryStrReturn =
+            queryStrReturnAry[curQueryStrAryInfo.index].at(-1)!;
+          if (curQueryStr === bfQueryStrReturn.queryStr) {
+            bfQueryStrReturn.valueAry[0].push(valueAry);
+            return;
+          }
+        }
         queryStrReturnAry[curQueryStrAryInfo.index].push({
           queryStr: queryAry.join(" "),
           valueAry: valueAry,
@@ -992,12 +1020,16 @@ export default class QueryBuilder {
     return queryStrReturnAry;
   }
 
-  static insertMutation = <T>(args: MutationInput<T, "INSERT">) =>
-    QueryBuilder.mutation<T, "INSERT">(args);
+  static insertMutation = <T>(
+    args: MutationInput<T, "INSERT">,
+    options?: { multipleInput: boolean }
+  ) => QueryBuilder.mutation<T, "INSERT">(args, options);
   static updateMutation = <T>(args: MutationInput<T, "UPDATE">) =>
     QueryBuilder.mutation<T, "UPDATE">(args);
-  static upsertMutation = <T>(args: MutationInput<T, "UPSERT">) =>
-    QueryBuilder.mutation<T, "UPSERT">(args);
+  static upsertMutation = <T>(
+    args: MutationInput<T, "UPSERT">,
+    options?: { multipleInput: boolean }
+  ) => QueryBuilder.mutation<T, "UPSERT">(args, options);
   static setUpdateMutation = <T>(args: MutationInput<T, "SET_UPDATE">) =>
     QueryBuilder.mutation<T, "SET_UPDATE">(args);
   static deleteMutation = <T>(args: MutationInput<T, "DELETE">) =>
@@ -1006,8 +1038,10 @@ export default class QueryBuilder {
     QueryBuilder.mutation<T, "SET_DELETE">(args);
   static setInsertMutation = <T, I>(args: MutationInput<T, "SET_INSERT", I>) =>
     QueryBuilder.mutation<T, "SET_INSERT", I>(args);
-  static addUpsertMutation = <T>(args: MutationInput<T, "ADD_UPSERT">) =>
-    QueryBuilder.mutation<T, "ADD_UPSERT">(args);
+  static addUpsertMutation = <T>(
+    args: MutationInput<T, "ADD_UPSERT">,
+    options?: { multipleInput: boolean }
+  ) => QueryBuilder.mutation<T, "ADD_UPSERT">(args, options);
 
   static getQueryStrWithItems<T>(
     queryFn: AnyFn,

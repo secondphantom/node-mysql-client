@@ -501,10 +501,13 @@ class QueryBuilder {
         }
         return params;
     }
-    static mutation(args) {
+    static mutation(args, options) {
         const { mutationType } = args;
         const { dataObj } = QueryBuilder.mutationBuilder(args);
-        const curQueryStrAryInfo = { index: -1, tableName: "" };
+        const curQueryStrAryInfo = {
+            index: -1,
+            tableName: "",
+        };
         const queryStrReturnAry = [];
         for (const tableName in dataObj) {
             const { data } = dataObj[tableName];
@@ -523,6 +526,10 @@ class QueryBuilder {
                             return `\`${tableName}\`.\`${field}\``;
                         })
                             .join(", ")})\n`);
+                        if (options && options.multipleInput) {
+                            queryAry.push(`VALUES ?`);
+                            break;
+                        }
                         queryAry.push(`VALUES(${fieldAry
                             .map(() => {
                             return "?";
@@ -550,11 +557,16 @@ class QueryBuilder {
                             return `\`${field}\``;
                         })
                             .join(", ")})\n`);
-                        queryAry.push(`VALUES(${fieldAry
-                            .map(() => {
-                            return "?";
-                        })
-                            .join(", ")}) AS NEW_VAL`);
+                        if (options && options.multipleInput) {
+                            queryAry.push(`VALUES ? AS NEW_VAL`);
+                        }
+                        else {
+                            queryAry.push(`VALUES(${fieldAry
+                                .map(() => {
+                                return "?";
+                            })
+                                .join(", ")}) AS NEW_VAL`);
+                        }
                         queryAry.push(`ON DUPLICATE KEY UPDATE\n`);
                         if (exclIndexAry.length === 0) {
                             queryAry.push(`${indexObj.keyAry
@@ -611,6 +623,21 @@ class QueryBuilder {
                         valueAry.push(...whereValueAry);
                         break;
                 }
+                if (options && options.multipleInput) {
+                    if (queryStrReturnAry[curQueryStrAryInfo.index].length === 0) {
+                        queryStrReturnAry[curQueryStrAryInfo.index].push({
+                            queryStr: queryAry.join(" "),
+                            valueAry: [[valueAry]],
+                        });
+                        return;
+                    }
+                    const curQueryStr = queryAry.join(" ");
+                    const bfQueryStrReturn = queryStrReturnAry[curQueryStrAryInfo.index].at(-1);
+                    if (curQueryStr === bfQueryStrReturn.queryStr) {
+                        bfQueryStrReturn.valueAry[0].push(valueAry);
+                        return;
+                    }
+                }
                 queryStrReturnAry[curQueryStrAryInfo.index].push({
                     queryStr: queryAry.join(" "),
                     valueAry: valueAry,
@@ -619,14 +646,14 @@ class QueryBuilder {
         }
         return queryStrReturnAry;
     }
-    static insertMutation = (args) => QueryBuilder.mutation(args);
+    static insertMutation = (args, options) => QueryBuilder.mutation(args, options);
     static updateMutation = (args) => QueryBuilder.mutation(args);
-    static upsertMutation = (args) => QueryBuilder.mutation(args);
+    static upsertMutation = (args, options) => QueryBuilder.mutation(args, options);
     static setUpdateMutation = (args) => QueryBuilder.mutation(args);
     static deleteMutation = (args) => QueryBuilder.mutation(args);
     static setDeleteMutation = (args) => QueryBuilder.mutation(args);
     static setInsertMutation = (args) => QueryBuilder.mutation(args);
-    static addUpsertMutation = (args) => QueryBuilder.mutation(args);
+    static addUpsertMutation = (args, options) => QueryBuilder.mutation(args, options);
     static getQueryStrWithItems(queryFn, items) {
         return fp_method_1._.go([items], fp_method_1._.map(queryFn), fp_method_1._.flatten);
     }

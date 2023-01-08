@@ -201,28 +201,42 @@ export default class QueryBuilder {
             };
         };
     };
-    static mutation<T, U extends MutationType, I = any>(args: MutationInput<T, U, I>): Required<QueryStrReturn>[][];
-    static insertMutation: <T>(args: MutationManyInput<T, "INSERT">) => Required<QueryStrReturn>[][];
+    static mutation<T, U extends MutationType, I = any>(args: MutationInput<T, U, I>, options?: {
+        multipleInput: boolean;
+    }): Required<QueryStrReturn>[][];
+    static insertMutation: <T>(args: MutationManyInput<T, "INSERT">, options?: {
+        multipleInput: boolean;
+    }) => Required<QueryStrReturn>[][];
     static updateMutation: <T>(args: MutationManyInput<T, "UPDATE">) => Required<QueryStrReturn>[][];
-    static upsertMutation: <T>(args: MutationManyInput<T, "UPSERT">) => Required<QueryStrReturn>[][];
+    static upsertMutation: <T>(args: MutationManyInput<T, "UPSERT">, options?: {
+        multipleInput: boolean;
+    }) => Required<QueryStrReturn>[][];
     static setUpdateMutation: <T>(args: MutationSetInput<T, "SET_UPDATE">) => Required<QueryStrReturn>[][];
     static deleteMutation: <T>(args: MutationDeleteInput<T, "DELETE">) => Required<QueryStrReturn>[][];
     static setDeleteMutation: <T>(args: MutationSetDeleteInput<T, "SET_DELETE">) => Required<QueryStrReturn>[][];
     static setInsertMutation: <T, I>(args: MutationSetInsertInput<T, "SET_INSERT", I>) => Required<QueryStrReturn>[][];
-    static addUpsertMutation: <T>(args: MutationManyInput<T, "ADD_UPSERT">) => Required<QueryStrReturn>[][];
+    static addUpsertMutation: <T>(args: MutationManyInput<T, "ADD_UPSERT">, options?: {
+        multipleInput: boolean;
+    }) => Required<QueryStrReturn>[][];
     static getQueryStrWithItems<T>(queryFn: AnyFn, items: T): Required<QueryStrReturn>[][];
 }
 export declare class ExportQueryBuilder {
     static find: typeof QueryBuilder.find;
     static mutation: typeof QueryBuilder.mutation;
-    static insertMutation: <T>(args: MutationManyInput<T, "INSERT">) => Required<QueryStrReturn>[][];
+    static insertMutation: <T>(args: MutationManyInput<T, "INSERT">, options?: {
+        multipleInput: boolean;
+    } | undefined) => Required<QueryStrReturn>[][];
     static updateMutation: <T>(args: MutationManyInput<T, "UPDATE">) => Required<QueryStrReturn>[][];
-    static upsertMutation: <T>(args: MutationManyInput<T, "UPSERT">) => Required<QueryStrReturn>[][];
+    static upsertMutation: <T>(args: MutationManyInput<T, "UPSERT">, options?: {
+        multipleInput: boolean;
+    } | undefined) => Required<QueryStrReturn>[][];
     static deleteMutation: <T>(args: MutationDeleteInput<T, "DELETE">) => Required<QueryStrReturn>[][];
     static setUpdateMutation: <T>(args: MutationSetInput<T, "SET_UPDATE">) => Required<QueryStrReturn>[][];
     static setDeleteMutation: <T>(args: MutationSetDeleteInput<T, "SET_DELETE">) => Required<QueryStrReturn>[][];
     static setInsertMutation: <T, I>(args: MutationSetInsertInput<T, "SET_INSERT", I>) => Required<QueryStrReturn>[][];
-    static addUpsertMutation: <T>(args: MutationManyInput<T, "ADD_UPSERT">) => Required<QueryStrReturn>[][];
+    static addUpsertMutation: <T>(args: MutationManyInput<T, "ADD_UPSERT">, options?: {
+        multipleInput: boolean;
+    } | undefined) => Required<QueryStrReturn>[][];
     static getQueryStrWithItems: typeof QueryBuilder.getQueryStrWithItems;
 }
 export {};

@@ -53,7 +53,8 @@ export namespace MysqlDataType {
 
   export type DateTimeDefaultValue =
     | "CURRENT_TIMESTAMP"
-    | "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+    | "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"
+    | "NULL";
 
   export type Enforced =
     | "CASCADE"

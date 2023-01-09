@@ -11,7 +11,7 @@ export declare namespace MysqlDataType {
     export type DbDate = "DATE" | "TIME" | "DATETIME" | "TIMESTAMP" | "YEAR";
     export type DbJson = "JSON";
     export type All = Number | String | DbDate | DbJson;
-    export type DateTimeDefaultValue = "CURRENT_TIMESTAMP" | "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+    export type DateTimeDefaultValue = "CURRENT_TIMESTAMP" | "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" | "NULL";
     export type Enforced = "CASCADE" | "SET NULL" | "NO ACTION" | "SET DEFAULT" | "RESTRICT";
     export type PickTypeValues<T, U> = T extends {
         [key in keyof T as key extends U ? key : never]: infer R;

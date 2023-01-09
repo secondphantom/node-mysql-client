@@ -56,6 +56,26 @@ type FindUniqueInput<T> = {
   };
 };
 
+type ExceptArrayAndTableName<T, U = boolean> = {
+  [key in keyof T as T[key] extends Array<any> | undefined
+    ? never
+    : key extends "tableName"
+    ? never
+    : key]?: U;
+};
+
+type AggregateOnlyValue<T, U> = {
+  [key in keyof T as T[key] extends U | undefined ? key : never]?: string;
+};
+
+type AggregateOperator<T> = {
+  count?: ExceptArrayAndTableName<T, string> | string;
+  max?: AggregateOnlyValue<T, number>;
+  min?: AggregateOnlyValue<T, number>;
+  sum?: AggregateOnlyValue<T, number>;
+  avg?: AggregateOnlyValue<T, number>;
+};
+
 type FindManyInput<T> = {
   dbSchemaConfig: ConfigSchema;
   where?: MergedWhereOperator<T>;
@@ -66,18 +86,7 @@ type FindManyInput<T> = {
       ? never
       : key]?: boolean;
   };
-  // include?: {
-  //   [key in keyof T as T[key] extends Array<any> | undefined
-  //     ? key
-  //     : never]?: Omit<
-  //     FindManyInput<Optional<Unpacked<T[key]>>>,
-  //     "skip" | "take"
-  //   >;
-  // } & {
-  //   [key in keyof T as T[key] extends Array<any> | undefined
-  //     ? never
-  //     : key]?: FindUniqueInput<Optional<Unpacked<T[key]>>>;
-  // };
+  aggregate?: AggregateOperator<T>;
   include?: {
     [key in keyof T]?: Omit<
       FindManyInput<Optional<Unpacked<T[key]>>>,
@@ -584,6 +593,7 @@ export default class QueryBuilder {
           joinAry: Array<string>;
           orderByAry: Array<string>;
           skipTake: Array<string>;
+          isAggregate: boolean;
         } = undefined
   ) {
     if (!params) {
@@ -596,27 +606,60 @@ export default class QueryBuilder {
         joinAry: [],
         orderByAry: [],
         skipTake: [],
+        isAggregate: false,
       };
     }
     const {
       dbSchemaConfig: { tableName, fields },
       include,
       select,
+      aggregate,
       where,
       orderBy,
       skip,
       take,
     } = args;
 
-    if (select) {
-      Object.entries(select).forEach(([key, value]) => {
-        if (!value) return;
-        params!.selectAry.push(`\`${tableName}\`.\`${key}\``);
+    if (aggregate) {
+      params.isAggregate = true;
+      const { count, avg, max, min, sum } = aggregate;
+
+      const getSelectAry = (
+        type: string,
+        tableName: string,
+        value: string | { [key: string]: string }
+      ) => {
+        const selectAry: string[] = [];
+        if (value) {
+          if (typeof value === "string") {
+            selectAry.push(`${type}(*) as ${value}`);
+          } else {
+            Object.entries(value).forEach(([key, value]) => {
+              selectAry.push(
+                `${type}(\`${tableName}\`.\`${key}\`) as ${value}`
+              );
+            });
+          }
+        }
+        return selectAry;
+      };
+      Object.entries(aggregate).forEach(([type, value]) => {
+        const selectAry = getSelectAry(type, tableName, value as any);
+        params!.selectAry.push(...selectAry);
       });
     } else {
-      params.selectAry.push(
-        ...Object.keys(fields).map((key) => `\`${tableName}\`.\`${key}\``)
-      );
+      if (!params.isAggregate) {
+        if (select) {
+          Object.entries(select).forEach(([key, value]) => {
+            if (!value) return;
+            params!.selectAry.push(`\`${tableName}\`.\`${key}\``);
+          });
+        } else {
+          params.selectAry.push(
+            ...Object.keys(fields).map((key) => `\`${tableName}\`.\`${key}\``)
+          );
+        }
+      }
     }
 
     if (where) {

@@ -34,12 +34,26 @@ type FindUniqueInput<T> = {
         [key in keyof T as T[key] extends Array<any> | undefined ? never : key]?: FindUniqueInput<Optional<Unpacked<T[key]>>>;
     };
 };
+type ExceptArrayAndTableName<T, U = boolean> = {
+    [key in keyof T as T[key] extends Array<any> | undefined ? never : key extends "tableName" ? never : key]?: U;
+};
+type AggregateOnlyValue<T, U> = {
+    [key in keyof T as T[key] extends U | undefined ? key : never]?: string;
+};
+type AggregateOperator<T> = {
+    count?: ExceptArrayAndTableName<T, string> | string;
+    max?: AggregateOnlyValue<T, number>;
+    min?: AggregateOnlyValue<T, number>;
+    sum?: AggregateOnlyValue<T, number>;
+    avg?: AggregateOnlyValue<T, number>;
+};
 type FindManyInput<T> = {
     dbSchemaConfig: ConfigSchema;
     where?: MergedWhereOperator<T>;
     select?: {
         [key in keyof T as T[key] extends Array<any> | undefined ? never : key extends "tableName" ? never : key]?: boolean;
     };
+    aggregate?: AggregateOperator<T>;
     include?: {
         [key in keyof T]?: Omit<FindManyInput<Optional<Unpacked<T[key]>>>, "skip" | "take">;
     };
@@ -141,6 +155,7 @@ export default class QueryBuilder {
         joinAry: Array<string>;
         orderByAry: Array<string>;
         skipTake: Array<string>;
+        isAggregate: boolean;
     }): {
         parentTableName: string;
         parentForeignKeys: {
@@ -154,6 +169,7 @@ export default class QueryBuilder {
         joinAry: Array<string>;
         orderByAry: Array<string>;
         skipTake: Array<string>;
+        isAggregate: boolean;
     };
     static find<T>(args: FindUniqueInput<T> & FindManyInput<T>): QueryStrReturn;
     static mutationBuilder<T, U extends MutationType, I = any>(args: MutationInput<T, U, I>, params?: undefined | {

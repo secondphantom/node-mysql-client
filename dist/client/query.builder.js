@@ -334,7 +334,11 @@ class QueryBuilder {
         }
         const { dbSchemaConfig: { tableName, fields }, include, select, where, orderBy, skip, take, } = args;
         if (select) {
-            params.selectAry.push(...Object.keys(select).map((key) => `\`${tableName}\`.\`${key}\``));
+            Object.entries(select).forEach(([key, value]) => {
+                if (!value)
+                    return;
+                params.selectAry.push(`\`${tableName}\`.\`${key}\``);
+            });
         }
         else {
             params.selectAry.push(...Object.keys(fields).map((key) => `\`${tableName}\`.\`${key}\``));

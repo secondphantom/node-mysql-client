@@ -66,17 +66,23 @@ type FindManyInput<T> = {
       ? never
       : key]?: boolean;
   };
+  // include?: {
+  //   [key in keyof T as T[key] extends Array<any> | undefined
+  //     ? key
+  //     : never]?: Omit<
+  //     FindManyInput<Optional<Unpacked<T[key]>>>,
+  //     "skip" | "take"
+  //   >;
+  // } & {
+  //   [key in keyof T as T[key] extends Array<any> | undefined
+  //     ? never
+  //     : key]?: FindUniqueInput<Optional<Unpacked<T[key]>>>;
+  // };
   include?: {
-    [key in keyof T as T[key] extends Array<any> | undefined
-      ? key
-      : never]?: Omit<
+    [key in keyof T]?: Omit<
       FindManyInput<Optional<Unpacked<T[key]>>>,
       "skip" | "take"
     >;
-  } & {
-    [key in keyof T as T[key] extends Array<any> | undefined
-      ? never
-      : key]?: FindUniqueInput<Optional<Unpacked<T[key]>>>;
   };
   orderBy?: {
     [key in keyof T as key extends "tableName" ? never : key]?: "DESC" | "ASC";
@@ -603,9 +609,10 @@ export default class QueryBuilder {
     } = args;
 
     if (select) {
-      params.selectAry.push(
-        ...Object.keys(select).map((key) => `\`${tableName}\`.\`${key}\``)
-      );
+      Object.entries(select).forEach(([key, value]) => {
+        if (!value) return;
+        params!.selectAry.push(`\`${tableName}\`.\`${key}\``);
+      });
     } else {
       params.selectAry.push(
         ...Object.keys(fields).map((key) => `\`${tableName}\`.\`${key}\``)

@@ -41,9 +41,7 @@ type FindManyInput<T> = {
         [key in keyof T as T[key] extends Array<any> | undefined ? never : key extends "tableName" ? never : key]?: boolean;
     };
     include?: {
-        [key in keyof T as T[key] extends Array<any> | undefined ? key : never]?: Omit<FindManyInput<Optional<Unpacked<T[key]>>>, "skip" | "take">;
-    } & {
-        [key in keyof T as T[key] extends Array<any> | undefined ? never : key]?: FindUniqueInput<Optional<Unpacked<T[key]>>>;
+        [key in keyof T]?: Omit<FindManyInput<Optional<Unpacked<T[key]>>>, "skip" | "take">;
     };
     orderBy?: {
         [key in keyof T as key extends "tableName" ? never : key]?: "DESC" | "ASC";

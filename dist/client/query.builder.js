@@ -330,14 +330,45 @@ class QueryBuilder {
                 joinAry: [],
                 orderByAry: [],
                 skipTake: [],
+                isAggregate: false,
             };
         }
-        const { dbSchemaConfig: { tableName, fields }, include, select, where, orderBy, skip, take, } = args;
-        if (select) {
-            params.selectAry.push(...Object.keys(select).map((key) => `\`${tableName}\`.\`${key}\``));
+        const { dbSchemaConfig: { tableName, fields }, include, select, aggregate, where, orderBy, skip, take, } = args;
+        if (aggregate) {
+            params.isAggregate = true;
+            const { count, avg, max, min, sum } = aggregate;
+            const getSelectAry = (type, tableName, value) => {
+                const selectAry = [];
+                if (value) {
+                    if (typeof value === "string") {
+                        selectAry.push(`${type}(*) as ${value}`);
+                    }
+                    else {
+                        Object.entries(value).forEach(([key, value]) => {
+                            selectAry.push(`${type}(\`${tableName}\`.\`${key}\`) as ${value}`);
+                        });
+                    }
+                }
+                return selectAry;
+            };
+            Object.entries(aggregate).forEach(([type, value]) => {
+                const selectAry = getSelectAry(type, tableName, value);
+                params.selectAry.push(...selectAry);
+            });
         }
         else {
-            params.selectAry.push(...Object.keys(fields).map((key) => `\`${tableName}\`.\`${key}\``));
+            if (!params.isAggregate) {
+                if (select) {
+                    Object.entries(select).forEach(([key, value]) => {
+                        if (!value)
+                            return;
+                        params.selectAry.push(`\`${tableName}\`.\`${key}\``);
+                    });
+                }
+                else {
+                    params.selectAry.push(...Object.keys(fields).map((key) => `\`${tableName}\`.\`${key}\``));
+                }
+            }
         }
         if (where) {
             const result = QueryBuilder.where(tableName, where);

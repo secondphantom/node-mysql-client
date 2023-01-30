@@ -20,7 +20,7 @@ export default class DbClient extends DbLightClient {
     this.initTable().then();
   }
 
-  private updatePresentDbSchema() {
+  private updatePresentDbSchema = () => {
     let presentDbSchemaJson: string | undefined;
     try {
       presentDbSchemaJson = fs.readFileSync(this.dbSchemaPath, "utf-8");
@@ -31,22 +31,22 @@ export default class DbClient extends DbLightClient {
       this.presentDbSchema = {};
       return;
     }
-  }
+  };
 
-  private isDiffDbSchema(
+  private isDiffDbSchema = (
     dbSchemaName: string,
     dbSchemaConfig: ConfigSchema,
     update: boolean
-  ): boolean {
+  ): boolean => {
     const presentDbSchemaConfig = this.presentDbSchema[dbSchemaName];
 
     const diffResult = diff(presentDbSchemaConfig, dbSchemaConfig);
     if (!Object.keys(diffResult).length) return false;
     if (update) this.presentDbSchema[dbSchemaName] = dbSchemaConfig;
     return true;
-  }
+  };
 
-  private async initTable() {
+  private initTable = async () => {
     for (const dbSchemaData of this.dbSchemaAry) {
       const dbSchema = Object.entries(dbSchemaData);
 
@@ -92,5 +92,5 @@ export default class DbClient extends DbLightClient {
       JSON.stringify(this.presentDbSchema),
       "utf-8"
     );
-  }
+  };
 }

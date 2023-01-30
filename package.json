@@ -7,7 +7,7 @@
     "watch": "tsc -w",
     "build": "rmdir /s /q dist && tsc --project tsconfig.prd.json",
     "egdbclient": "node dist/test/eg.db.client.js",
-    "degdblightclient": "node dist/test/eg.db.light.client.js"
+    "egdblightclient": "node dist/test/eg.db.light.client.js"
   },
   "keywords": [],
   "author": "Second Phantom",

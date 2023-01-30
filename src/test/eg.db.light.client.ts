@@ -47,4 +47,12 @@ const dbLightClient = new DbLightClient(poolConfig);
   });
   const resultQuery2 = await dbLightClient.tryQuery(findQuery2);
   console.log(resultQuery2);
+
+  // destroy pool
+  try {
+    dbLightClient.endPool();
+    await dbLightClient.tryQuery(findQuery2);
+  } catch (error) {
+    console.error(error);
+  }
 })();

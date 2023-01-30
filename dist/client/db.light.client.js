@@ -12,7 +12,7 @@ class DbLightClient {
         this.pool = mysql2_1.default.createPool(poolConfig);
         this.promisePool = this.pool.promise();
     }
-    async tryQuery(tryQuery) {
+    tryQuery = async (tryQuery) => {
         let error = undefined;
         let resultAry = [];
         const { queryStr, valueAry } = tryQuery;
@@ -39,8 +39,8 @@ class DbLightClient {
         if (error)
             throw new Error(error);
         return resultAry;
-    }
-    async tryTrx(trxAry) {
+    };
+    tryTrx = async (trxAry) => {
         let error = undefined;
         let resultAry = [];
         try {
@@ -72,21 +72,21 @@ class DbLightClient {
         if (error)
             throw new Error(error);
         return resultAry;
-    }
-    async beginTrx() {
+    };
+    beginTrx = async () => {
         const connection = await this.promisePool.getConnection();
         await connection.beginTransaction();
         return connection;
-    }
-    async commitTrx(connection) {
+    };
+    commitTrx = async (connection) => {
         await connection.commit();
         connection.release();
-    }
-    async errorTrx(connection) {
+    };
+    errorTrx = async (connection) => {
         await connection.rollback();
         connection.release();
-    }
-    async trxWithConnection(connection, trxAry) {
+    };
+    trxWithConnection = async (connection, trxAry) => {
         let resultAry = [];
         for await (const trx of trxAry) {
             const promiseAry = trx.map((trxInfo) => {
@@ -96,8 +96,8 @@ class DbLightClient {
             resultAry.push(result);
         }
         return resultAry;
-    }
-    async queryWithConnection(connection, tryQuery) {
+    };
+    queryWithConnection = async (connection, tryQuery) => {
         const { queryStr, valueAry } = tryQuery;
         const result = await connection.query(queryStr, valueAry);
         let resultAry = [];
@@ -105,6 +105,9 @@ class DbLightClient {
             resultAry.push(...result[0]);
         }
         return resultAry;
-    }
+    };
+    endPool = () => {
+        this.pool.end();
+    };
 }
 exports.default = DbLightClient;

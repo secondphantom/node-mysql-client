@@ -20,7 +20,7 @@ export default class DbLightClient {
     this.promisePool = this.pool.promise();
   }
 
-  async tryQuery<T = any>(tryQuery: QueryStrReturn): Promise<Array<T>> {
+  tryQuery = async <T = any>(tryQuery: QueryStrReturn): Promise<Array<T>> => {
     let error = undefined;
     let resultAry: any[] = [];
     const { queryStr, valueAry } = tryQuery;
@@ -45,9 +45,9 @@ export default class DbLightClient {
     }
     if (error) throw new Error(error as any);
     return resultAry;
-  }
+  };
 
-  async tryTrx(trxAry: QueryStrReturn[][]) {
+  tryTrx = async (trxAry: QueryStrReturn[][]) => {
     let error = undefined;
     let resultAry = [];
     try {
@@ -77,28 +77,28 @@ export default class DbLightClient {
 
     if (error) throw new Error(error as any);
     return resultAry;
-  }
+  };
 
-  async beginTrx() {
+  beginTrx = async () => {
     const connection = await this.promisePool.getConnection();
     await connection.beginTransaction();
     return connection;
-  }
+  };
 
-  async commitTrx(connection: PoolConnection) {
+  commitTrx = async (connection: PoolConnection) => {
     await connection.commit();
     connection.release();
-  }
+  };
 
-  async errorTrx(connection: PoolConnection) {
+  errorTrx = async (connection: PoolConnection) => {
     await connection.rollback();
     connection.release();
-  }
+  };
 
-  async trxWithConnection(
+  trxWithConnection = async (
     connection: PoolConnection,
     trxAry: QueryStrReturn[][]
-  ) {
+  ) => {
     let resultAry = [];
     for await (const trx of trxAry) {
       const promiseAry = trx.map((trxInfo) => {
@@ -109,12 +109,12 @@ export default class DbLightClient {
       resultAry.push(result);
     }
     return resultAry;
-  }
+  };
 
-  async queryWithConnection<T>(
+  queryWithConnection = async <T>(
     connection: PoolConnection,
     tryQuery: QueryStrReturn
-  ): Promise<Array<T>> {
+  ): Promise<Array<T>> => {
     const { queryStr, valueAry } = tryQuery;
     const result = await connection.query(queryStr, valueAry);
     let resultAry: any[] = [];
@@ -122,5 +122,9 @@ export default class DbLightClient {
       resultAry.push(...(result[0] as Array<T>));
     }
     return resultAry;
-  }
+  };
+
+  endPool = () => {
+    this.pool.end();
+  };
 }

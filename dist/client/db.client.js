@@ -19,7 +19,7 @@ class DbClient extends db_light_client_1.default {
         this.updatePresentDbSchema();
         this.initTable().then();
     }
-    updatePresentDbSchema() {
+    updatePresentDbSchema = () => {
         let presentDbSchemaJson;
         try {
             presentDbSchemaJson = fs_1.default.readFileSync(this.dbSchemaPath, "utf-8");
@@ -31,8 +31,8 @@ class DbClient extends db_light_client_1.default {
             this.presentDbSchema = {};
             return;
         }
-    }
-    isDiffDbSchema(dbSchemaName, dbSchemaConfig, update) {
+    };
+    isDiffDbSchema = (dbSchemaName, dbSchemaConfig, update) => {
         const presentDbSchemaConfig = this.presentDbSchema[dbSchemaName];
         const diffResult = (0, deep_object_diff_1.diff)(presentDbSchemaConfig, dbSchemaConfig);
         if (!Object.keys(diffResult).length)
@@ -40,8 +40,8 @@ class DbClient extends db_light_client_1.default {
         if (update)
             this.presentDbSchema[dbSchemaName] = dbSchemaConfig;
         return true;
-    }
-    async initTable() {
+    };
+    initTable = async () => {
         for (const dbSchemaData of this.dbSchemaAry) {
             const dbSchema = Object.entries(dbSchemaData);
             for await (const [dbSchemaName, dbSchemaConfig] of dbSchema) {
@@ -74,6 +74,6 @@ class DbClient extends db_light_client_1.default {
             }
         }
         fs_1.default.writeFileSync(path_1.default.join(this.dbSchemaPath), JSON.stringify(this.presentDbSchema), "utf-8");
-    }
+    };
 }
 exports.default = DbClient;

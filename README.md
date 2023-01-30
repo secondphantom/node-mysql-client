@@ -48,6 +48,9 @@ This library created under the influence of the `prisma` library. This library u
 			- [Fields](#fields-6)
 			- [operator Fields](#operator-fields)
 			- [Example](#example-6)
+		- [Aggregate](#aggregate)
+			- [Fields](#fields-7)
+			- [Input](#input)
 
 # Schema
 ## Examples
@@ -291,25 +294,31 @@ try {
 ### Fields
 - include field makes `join query` through `foreign key`
 
-| Field          | Optional | Input                   |
-| -------------- | :------: | ----------------------- |
-| dbSchemaConfig |  false   | [DbSchema](#schema)     |
-| where          |   true   | [Where Builder](#where) |
-| include        |   true   | [Find Builder](#find)   |
-| select         |   true   | keyof schema : boolean  |
-| orderBy        |   true   | `DESC` or `ASC`         |
-| skip           |   true   | number                  |
-| take           |   true   | number                  |
+| Field          | Optional | Input                           |
+| -------------- | :------: | ------------------------------- |
+| dbSchemaConfig |  false   | [DbSchema](#schema)             |
+| where          |   true   | [Where Builder](#where)         |
+| include        |   true   | [Find Builder](#find)           |
+| aggregate      |   true   | [Aggregate Builder](#aggregate) |
+| select         |   true   | keyof schema : boolean          |
+| orderBy        |   true   | `DESC` or `ASC`                 |
+| skip           |   true   | number                          |
+| take           |   true   | number                          |
 ### Example
 ```ts
 const query = QueryBuilder.find<AuthorSchema>({
 	dbSchemaConfig: musicDbSchema.authorDbSchema,
+	...{	aggregate: {
+		count: {
+			author_id: "total",
+		},
+	}}
 	include: {
 		songs: {
 			dbSchemaConfig: musicDbSchema.songDbSchema,
 		},
 	},
-	selectL {
+	select {
 		author: true,
 		....
 	},
@@ -318,6 +327,7 @@ const query = QueryBuilder.find<AuthorSchema>({
 	},
 	take: 2,
 	skip: 1,
+	
 });
 ```
 ## Mutation
@@ -447,8 +457,8 @@ const query = QueryBuilder.deleteMutation<AuthorHistorySchema,AuthorSchema>({
 #### Fields
 |    Field     | Input                                                              |
 | :----------: | ------------------------------------------------------------------ |
-|   OR / AND   | array of  {keyof schema : boolean / [Operator Builder](#operator)} |
-| keyof schema | boolean / [Operator Builder](#operator)                            |
+|   OR / AND   | array of  {keyof schema : boolean / [Operator Builder](#operator-fields)} |
+| keyof schema | boolean / [Operator Builder](#operator-fields)                            |
 #### operator Fields
 | Field |    Input     | description        |
 | :---: | :----------: | ------------------ |
@@ -490,6 +500,16 @@ const query2 = QueryBuilder.find<SongSchema>({
 	},
 });
 ```
-
-
-
+### Aggregate
+#### Fields
+| Field |          Input           | description                                                     |
+| :---: | :----------------------: | --------------------------------------------------------------- |
+| count | [Input](#input) / string | count row if value string count all row and value is colum name |
+|  max  |     [Input](#input)      | max value                                                       |
+|  min  |     [Input](#input)      | min value                                                       |
+|  sum  |     [Input](#input)      | sum value                                                       |
+|  avg  |     [Input](#input)      | avg value                                                       |
+#### Input
+|    Field     | Value  | description |
+| :----------: | :----: | ----------- |
+| keyof schema | string | column name |

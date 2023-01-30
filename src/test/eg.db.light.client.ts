@@ -48,7 +48,40 @@ const dbLightClient = new DbLightClient(poolConfig);
   const resultQuery2 = await dbLightClient.tryQuery(findQuery2);
   console.log(resultQuery2);
 
-  // destroy pool
+  const aggregateQuery = QueryBuilder.find<SongSchema>({
+    dbSchemaConfig: musicDbSchema.songDbSchema,
+    include: {
+      author_id: {
+        dbSchemaConfig: musicDbSchema.authorDbSchema,
+      },
+      genre_id: {
+        dbSchemaConfig: musicDbSchema.genreDbSchema,
+      },
+    },
+    aggregate: {
+      count: {
+        author_id: "total",
+      },
+      max: {
+        song_id: "max",
+      },
+      sum: {
+        song_id: "sum",
+      },
+      avg: {
+        song_id: "avg",
+      },
+      min: {
+        song_id: "min",
+      },
+    },
+  });
+
+  const aggregateResult = await dbLightClient.tryQuery(aggregateQuery);
+  console.log(aggregateResult);
+  // [ { total: 4, max: 4, sum: '10', avg: '2.5000', min: 1 } ]
+
+  // end pool
   try {
     dbLightClient.endPool();
     await dbLightClient.tryQuery(findQuery2);

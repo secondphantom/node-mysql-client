@@ -217,28 +217,29 @@ class QueryBuilder {
             whereAry: [],
             whereValueAry: [],
         };
-        const getAryWhere = (value) => {
+        const getAryWhere = (value, operator) => {
+            const tempWhereAry = [];
             const whereAry = [];
             const whereValueAry = [];
             value.forEach((where) => {
                 const [key, value] = Object.entries(where)[0];
                 if (value === null || typeof value !== "object") {
                     if (value === null) {
-                        whereAry.push(`\`${tableName}\`.\`${key}\` IS NULL`);
+                        tempWhereAry.push(`\`${tableName}\`.\`${key}\` IS NULL`);
                     }
                     else {
-                        whereAry.push(`\`${tableName}\`.\`${key}\` = ?`);
+                        tempWhereAry.push(`\`${tableName}\`.\`${key}\` = ?`);
                         whereValueAry.push(QueryBuilder.convertDbValue(value));
                     }
                 }
                 else {
                     const result = getWhere(key, value);
-                    whereAry.push(...result.whereAry);
+                    tempWhereAry.push(...result.whereAry);
                     whereValueAry.push(...result.whereValueAry);
                 }
             });
             return {
-                whereAry,
+                whereAry: [`(${tempWhereAry.join(` ${operator} `)})`],
                 whereValueAry,
             };
         };
@@ -291,12 +292,12 @@ class QueryBuilder {
         };
         for (const [key, value] of Object.entries(where)) {
             if (key === "OR") {
-                const result = getAryWhere(value);
+                const result = getAryWhere(value, key);
                 params.whereAry.push(`${result.whereAry.join(" OR ")}`);
                 params.whereValueAry.push(...result.whereValueAry);
             }
             else if (key === "AND") {
-                const result = getAryWhere(value);
+                const result = getAryWhere(value, key);
                 params.whereAry.push(`${result.whereAry.join(" AND ")}`);
                 params.whereValueAry.push(...result.whereValueAry);
             }
